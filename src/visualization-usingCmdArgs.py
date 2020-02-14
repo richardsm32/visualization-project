@@ -23,12 +23,15 @@ import argparse
 import fnmatch
 # Import Holoviz libraries
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import hvplot.pandas
 import datashader as ds
 import dask
 import bokeh
 import holoviews as hv
+import panel as pn
 from distutils.version import LooseVersion
 from qiime2 import Artifact
 from qiime2 import Visualization
@@ -41,8 +44,7 @@ import biom
 __author__ = 'Mathew Richards'
 __copyright__ = 'Copyright 2020, AAFC-AAC'
 __credits__ = ['Mathew Richards', 'Rodrigo Ortega Polo']
-__license__ = 'GPL'
-__version__ = '3'
+__license__ = 'MIT'
 __maintainer__ = 'Mathew Richards'
 __email__ = 'mathew.richards@canada.ca'
 __status__ = 'Draft'
@@ -76,22 +78,34 @@ def main():
     data_zip.extractall(path='extract_dir')
     # potential to add a RegEx condition to create extract_dir based
     # on input files or directory
-    plot = ' '
     for file in glob.iglob('extract_dir/*/data/per-*.csv'):
         print(file)
         data = pd.read_csv(file)
-    print(type(data))
-    data = data.set_index('Sample name')
-    data.tail()
-    # with gzip.open(demux, 'rb'):
-        # get into random directory beneath the qzv then to data
-    # for root, dirs, files in os.walk(dir_name):
-    #    isDirectory = os.path.isdir(fpath)
-        # file = open('*/data/per-sample-fastq-counts.csv'
-    # file = Visualization.load(demux)
-    # doesn't seem like many options for this method
-    # file.hvplot()
-    # hvplot
+        data.head()
+    fig = px.bar(data, x = 'Sample name', y = 'Sequence count', title = 'test graph')
+    # HIDE FOR NOW fig.show()
+    fig1 = go.Figure(go.Scatter(x = data['Sample name'], y = data['Sequence count'],
+                                name ='test graph object'))
+    fig1.update_layout(title='Demux data', plot_bgcolor='rgb(230,200,170)',
+                       showlegend=True)
+    # HIDE FOR NOW fig1.show()
+    print(type(data)) #produces <class 'pandas.core.frame.DataFrame'>
+
+    df_widget = pn.widgets.DataFrame(data, name='DataFrame')
+
+    df_widget.show()
+
+
+    ###PANEL MODULE
+    def select_row(row=0):
+        return data.loc[row]
+    slide = pn.interact(select_row, row=(0, len(data)-1))
+    # THIS STOPS EXECUTION --> slide.show()
+    # slide1 = pn.interact(select_row, row=(0, 25))
+    # slide1.show()
+    #slide.servable() # FOR USE WITH 'panel serve' command on notebook file .ipynb
+    # this above call should also work for .py files
+
     tutorial(dir_name)
     # data_zip.close()
 
@@ -120,4 +134,17 @@ output those in the proper bokeh server?
 
 add interactivity and other plots in future
     transcriptomics, proteomics, metabolomics, etc.
+
+    EXTRA - keep for now
+    # data = data.set_index('Sample name')
+
+    # with gzip.open(demux, 'rb'):
+        # get into random directory beneath the qzv then to data
+    # for root, dirs, files in os.walk(dir_name):
+    #    isDirectory = os.path.isdir(fpath)
+        # file = open('*/data/per-sample-fastq-counts.csv'
+    # file = Visualization.load(demux)
+    # doesn't seem like many options for this method
+    # file.hvplot()
+    # hvplot
 """
